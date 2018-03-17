@@ -1,4 +1,4 @@
-# prints a number without any trialing zeros
+# prints a number without any trailing zeross
 
 def no_boring_zeros(n):
 

@@ -1,4 +1,5 @@
 {% extends 'user/navbar.html' %}
+{% load staticfiles %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,20 +8,20 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
 
-    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/user.css' %}">
 </head>
 <body>
     {% block content %}
-            <!-- <div class="row">
+            <div class="row">
                 <div class="span12">
-                    <ul class="thumbnails">
-                        <li class="span5 clearfix">
+                    <ul class="foo">
+                        <li class="span5 clearfix" style="list-style-type: none;">
                           <div class="thumbnail clearfix">
-                            <img src="http://placehold.it/320x200" alt="ALT NAME" class="pull-left span2 clearfix" style='margin-right:10px'>
-                            <div class="caption" class="pull-left">
-                              <a href="http://bootsnipp.com/" class="btn btn-primary icon  pull-right">Add</a>
+                            <img src="http://pngimages.net/sites/default/files/add-a-button-png-image-68709.png/" alt="Add Symbol" width="100" height="100" class="pull-left clearfix" style='margin-right:10px'>
+                            <div class="caption push-right">
+                              <div class= "d-flex justify-content-center pull-right">
+                                <a href="{% url 'add-patient' %}" class="btn btn-primary icon ">Add</a>
+                              </div>
                               <h4>New Patient</h4>
                               <small><b>RG: </b>99384877</small>  
                             </div>
@@ -29,7 +30,7 @@
                     </ul>
                 </div>
             </div>
-        </div> -->
+        
     {% endblock %}
 </body>
 </html>

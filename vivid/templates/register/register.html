@@ -7,14 +7,16 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Register</title>
 
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
     <!-- Font Icon -->
     <!-- <link rel="stylesheet" href="fonts/material-icon/css/material-design-iconic-font.min.css"> -->
     <!-- Main css -->
     <link rel="stylesheet" href="{% static 'css/register.css' %}">
 </head>
 <body>
-
-    <div class="main">
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}
@@ -22,35 +24,36 @@
             {% endfor %}
         </ul>
         {% endif %}
-        <section class="signup">
+        
+        <section class="signup-c">
             <!-- <img src="images/signup-bg.jpg" alt=""> -->
-            <div class="container">
-                <div class="signup-content">
-                    <form method="POST" id="signup-form" class="signup-form">
+            <div class="container-c">
+                <div class="signup-content-c">
+                    <form method="POST" id="signup-form" class="signup-form-c">
                         {% csrf_token %}
                         <h2 class="form-title">Create account</h2>
                         <!-- <div class="form-group">
                             <input type="text" class="form-input" name="name" id="name" placeholder="Your Name"/>
                         </div> -->
-                        <div class="form-group">
+                        <div class="form-group-c">
                             {{ form.username }}
                         </div>
-                        <div class="form-group">
+                        <div class="form-group-c">
                             {{ form.email }}
                         </div>
-                        <div class="form-group">
+                        <div class="form-group-c">
                             {{ form.password }}
                             <span toggle="#password" class="zmdi zmdi-eye field-icon toggle-password"></span>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group-c">
                             {{ form.re_password }}
                         </div>
                         <!-- <div class="form-group">
                             <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
                             <label for="agree-term" class="label-agree-term"><span><span></span></span>I agree all statements in  <a href="#" class="term-service">Terms of service</a></label>
                         </div> -->
-                        <div class="form-group">
-                            <input type="submit" name="submit" id="submit" class="form-submit" value="Sign up"/>
+                        <div class="form-group-c">
+                            <input type="submit" name="submit" id="submit" class="form-submit-c" value="Register"/>
                         </div>
                     </form>
                     <p class="loginhere">
@@ -60,7 +63,6 @@
             </div>
         </section>
 
-    </div>
 
     <!-- JS -->
     <!-- <script src="vendor/jquery/jquery.min.js"></script>

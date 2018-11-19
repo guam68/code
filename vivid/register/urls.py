@@ -3,5 +3,5 @@ from register import views as register_views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('register/', register_views.register, name='register')
+    path('', register_views.register, name='register')
 ]

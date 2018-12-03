@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from .models import PatientForm
+from .models import PatientForm, Patient
 
 @login_required
 def user(request):
-    return render(request, 'user/user.html')
+    patients = Patient.objects.all()
+    numPatients = patients.count()
+    return render(request, 'user/user.html', {'numPatients': numPatients, 'patients': patients})
 
 @login_required
 def patient(request):
@@ -13,7 +15,7 @@ def patient(request):
         form = PatientForm(request.POST)
         if form.is_valid():
             form.save()
-            return render(request, 'user/user.html')
+            return user(request) 
         else:
             return render(request, 'user/user.html')
     else:

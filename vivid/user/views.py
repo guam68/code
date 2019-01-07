@@ -10,7 +10,7 @@ def user(request):
     return render(request, 'user/user.html', {'numPatients': numPatients, 'patients': patients})
 
 @login_required
-def patient(request):
+def addPatient(request):
     if request.method == 'POST':
         form = PatientForm(request.POST)
         if form.is_valid():
@@ -21,5 +21,10 @@ def patient(request):
     else:
         form = PatientForm()
         return render(request, 'user/addPatient.html', {'form': form})
+
+@login_required
+def patient(request):
+    
+    return render(request, 'user/patient.html', )
 
     

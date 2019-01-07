@@ -6,9 +6,9 @@ import time
 program_start_time = time.time()
 
 print('Getting card data...')
-with open('card_list_bu.txt', 'r', encoding='utf-8') as file:
+with open('card_list.txt', 'r', encoding='utf-8') as file:
     card_count = file.readline()
-    text = ast.literal_eval(file.read())
+    uniques = ast.literal_eval(file.read())
 print('Card data added!\n')
 
 print('Getting deck data...')
@@ -18,7 +18,7 @@ with open('deck_list.txt', 'r', encoding='utf-8') as file:
 print('Deck data added!\n')
 
 
-def get_mavericks(text):
+def get_mavericks(uniques):
     
     with open('fixed_unique.txt', 'r', encoding='utf-8') as file:
         card_count_unique = file.readline()
@@ -35,9 +35,9 @@ def get_mavericks(text):
     return mavericks, len(mavericks)
 
 
-def fix_card_list(text):
+def fix_card_list(uniques):
     card_dict = {}
-    for card in text:
+    for card in uniques:
         card_id = card.pop('id')
         card_dict[card_id] = card
 
@@ -47,15 +47,15 @@ def fix_card_list(text):
     print(len(card_dict))
 
 
-def fix_deck_list(decks):
-    deck_dict = {}
-    for deck in decks:
-        deck_name= deck.pop('name')
-        deck_dict[deck_name] = deck
+# def fix_deck_list(decks):
+#     deck_dict = {}
+#     for deck in decks:
+#         deck_name= deck.pop('name')
+#         deck_dict[deck_name] = deck
 
-    with open('fixed_decks.txt', 'w', encoding='utf-8') as file:
-            file.write(str(deck_count))
-            file.write(str(deck_dict))
+#     with open('fixed_decks.txt', 'w', encoding='utf-8') as file:
+#             file.write(str(deck_count))
+#             file.write(str(deck_dict))
 
 
 def get_deck_info():
@@ -63,13 +63,6 @@ def get_deck_info():
 
 
 def get_card_type():
-    with open('fixed_decks.txt', 'r', encoding='utf-8') as file:
-        file.readline()
-        decks = ast.literal_eval(file.read())
-
-    with open('fixed_unique.txt', 'r', encoding='utf-8') as file:
-        file.readline()
-        uniques = ast.literal_eval(file.read())
 
     action_list = []
     creature_list = []
@@ -99,16 +92,12 @@ def get_num_unique():
         file.readline()
         uniques = ast.literal_eval(file.read())
 
-    with open('fixed_decks.txt', 'r', encoding='utf-8') as file:
-        file.readline()
-        decks = ast.literal_eval(file.read())
-
     card_counter = {}
 
     for deck in decks:
         deck_card_dict = decks[deck]['_links']['cards']
         for card in deck_card_dict:
-            if uniques[card, ]['card_title']in card_counter:
+            if uniques[card]['card_title'] in card_counter:
                 card_counter[uniques[card]['card_title']] += 1
             else:
                 card_counter[uniques[card]['card_title']] = 1
@@ -121,13 +110,12 @@ def get_num_unique():
 
 
 
-
+fix_card_list(uniques)
 # get_num_unique()
 # print(get_card_type())
-# fix_card_list(text)
-# mavs = get_mavericks(text)
+# mavs = get_mavericks(uniques)
 # print(mavs)
-print(len(decks))
+# print(len(decks))
 
 
 runtime = int(time.time() - program_start_time)

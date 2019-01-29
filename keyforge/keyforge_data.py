@@ -1,4 +1,4 @@
-# 2266 uniques and 443724 decks recorded
+# 2266 uniques and 452152 decks recorded
 
 import requests
 import re
@@ -9,7 +9,7 @@ import ast
 
 program_start_time = time.time()
 
-page = '1' # 33725 fail pg7625 fail 443724
+page = '1' 
 site = ('https://www.keyforgegame.com/api/decks/?page=','&page_size=25&links=cards&ordering=-date') # Date should be negative after initial data collection
 
 # Get the number of pages required to process
@@ -119,9 +119,9 @@ def get_decks(page, site):
 
 
 
-
-get_unique_cards(page, site)
 # get_decks(page, site)
+get_unique_cards(page, site)
+
 
 
 runtime = int(time.time() - program_start_time)

@@ -47,17 +47,6 @@ def fix_card_list(uniques):
     print(len(card_dict))
 
 
-# def fix_deck_list(decks):
-#     deck_dict = {}
-#     for deck in decks:
-#         deck_name= deck.pop('name')
-#         deck_dict[deck_name] = deck
-
-#     with open('fixed_decks.txt', 'w', encoding='utf-8') as file:
-#             file.write(str(deck_count))
-#             file.write(str(deck_dict))
-
-
 def get_deck_info():
     pass
 

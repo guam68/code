@@ -10,11 +10,12 @@ import sys
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import logging
 
+
 program_start_time = time.time()
 
-logging.basicConfig(filename='error.log', filemode = 'a', level=logging.DEBUG)
+logging.basicConfig(filename='error.log', filemode = 'a', level=logging.WARNING)
 page = '1' 
-site = ('https://www.keyforgegame.com/api/decks/?page=','&page_size=25&links=cards&ordering=-date') 
+site = ('https://www.keyforgegame.com/api/decks/?page=','&page_size=25&links=cards&ordering=date') 
 
 # Get the number of pages required to process (working for v2)
 def get_num_pages():
@@ -28,10 +29,24 @@ def get_unique_cards(page, site):
     con = None
     con = connect(dbname='keyforge', user=cred.login['user'], host='localhost', password=cred.login['password'])
 
-    pages = get_num_pages()
-    page = pages
+    get_page_sql = """
+        select page from current_page;
+    """
 
-    for i in range(pages,0,-1):        # Range should be pages to 0 here. Changed to get base cards
+    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cur = con.cursor()
+    cur.execute(get_page_sql)
+
+    try:
+        page = int(cur.fetchall()[0][0])
+    except IndexError:
+        page = 1
+
+    cur.close()
+
+    pages = get_num_pages()
+
+    for i in range(0, pages):        
         url = site[0] + str(page) + site[1]
         start_time = time.time()
         card_list = []
@@ -74,12 +89,16 @@ def get_unique_cards(page, site):
                 add_deck_cards(deck_id, deck_card_list, con)
             except:
                 logging.exception(f'Error when inserting data on page: {page}')
+                sleep(5)
 
+        try:
+            add_cards(card_list, con, page)
+        except:
+            logging.exception(f'Error when inserting card data on page: {page}')
+            sleep(5)
 
-        add_cards(card_list, con)
-
-        print(pages - page, '/', pages, ' ', end='')
-        page -= 1
+        print(page, '/', pages, ' ', end='')
+        page += 1
         print('Page process time: ', int(time.time() - start_time))
 
         sleep(.5)
@@ -88,16 +107,24 @@ def get_unique_cards(page, site):
     con.close()
 
         
-def add_cards(cards, con):
+def add_cards(cards, con, page):
     for card in cards:
         sql = """
             insert into cards
             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             on conflict do nothing;       
         """
+        sql2 = """
+        insert into current_page
+        values(%s,%s)
+        on conflict (id) do update
+        set page = (excluded.page)
+        """
+
         con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = con.cursor()
         cur.execute(sql, (card))
+        cur.execute(sql2, (page, 1))
         cur.close() 
 
 
@@ -136,6 +163,7 @@ def add_deck_cards(deck_id, deck_card_list, con):
         %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         on conflict do nothing;       
     """
+    
     add_list = [deck_id] + deck_card_list
     con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()

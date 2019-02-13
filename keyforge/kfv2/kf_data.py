@@ -3,6 +3,7 @@ import re
 import json
 import time
 from time import sleep
+import datetime
 import ast
 import credentials as cred
 from psycopg2 import connect
@@ -24,9 +25,13 @@ def get_num_pages():
     pages = count // 25
     return pages
 
-
+# Creates connection to database. Gets current page to be processed.
+# Gets data with assign_data() and cleans before passing as parameters to functions
+# Cycles through pages calling add_deck(), add_deck_houses(), add_deck_cards(), and get_cards()
 def get_unique_cards(page, site):
-    con = None
+    data = {} 
+    cards = []
+    decks = []
     con = connect(dbname='keyforge', user=cred.login['user'], host='localhost', password=cred.login['password'])
 
     get_page_sql = """
@@ -37,16 +42,18 @@ def get_unique_cards(page, site):
     cur = con.cursor()
     cur.execute(get_page_sql)
 
+    pages = get_num_pages()
     try:
         page = int(cur.fetchall()[0][0])
     except IndexError:
         page = 1
+    finally:
+        if page == pages:
+            page = 1
 
     cur.close()
-
-    pages = get_num_pages()
-
-    for i in range(0, pages):        
+    
+    for i in range(0, pages-page + 1):        
         url = site[0] + str(page) + site[1]
         start_time = time.time()
         card_list = []
@@ -55,15 +62,19 @@ def get_unique_cards(page, site):
         deck_card_list = []
 
         try:
-            data = requests.get(url).json()
-            cards = data['_linked']['cards']
-            decks = data['data']
+            data, cards, decks = assign_data(url)
            
-        except requests.exceptions.SSLError:
-            logging.exception(f'SSLError on page: {page}')
-            print('SSLError timeout. Sleeeeeep')
+        except:
+            print('Error timeout. Sleeeeeep')
             sleep(5)
-            print('Collection resumed')
+            print('Reattempting data retrieval')
+
+            try:
+                data, cards, decks = assign_data(url)
+                print('Data collection successful.')
+            except:
+                logging.exception(f'{datetime.datetime.now()} Error retrieving data on page: {page}')
+
             continue
 
         for card in cards:
@@ -84,17 +95,18 @@ def get_unique_cards(page, site):
             house_list = links['houses']
             deck_card_list = links['cards']
             try:
+                # Look into using a transaction here for queries (begin/commit)
                 add_deck(deck, con)
                 add_deck_houses(deck_id, house_list, con)
                 add_deck_cards(deck_id, deck_card_list, con)
             except:
-                logging.exception(f'Error when inserting data on page: {page}')
+                logging.exception(f'{datetime.datetime.now()} Error when inserting data on page: {page}')
                 sleep(5)
 
         try:
             add_cards(card_list, con, page)
         except:
-            logging.exception(f'Error when inserting card data on page: {page}')
+            logging.exception(f'{datetime.datetime.now()} Error when inserting card data on page: {page}')
             sleep(5)
 
         print(page, '/', pages, ' ', end='')
@@ -106,79 +118,89 @@ def get_unique_cards(page, site):
     
     con.close()
 
-        
+
+def assign_data(url):
+    data = requests.get(url).json()     
+    cards = data['_linked']['cards']
+    decks = data['data']
+    return (data, cards, decks)
+    
+
+# Last function called. Updates table with current page.
 def add_cards(cards, con, page):
     for card in cards:
         sql = """
-            insert into cards
+            insert into card
             values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             on conflict do nothing;       
         """
         sql2 = """
         insert into current_page
-        values(%s,%s)
+        values(%s,%s,%s)
         on conflict (id) do update
-        set page = (excluded.page)
+        set (page, run_time) = (excluded.page, excluded.run_time)
         """
 
-        con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        runtime = get_runtime()
         cur = con.cursor()
         cur.execute(sql, (card))
-        cur.execute(sql2, (page, 1))
+        cur.execute(sql2, (page, 1, runtime))
         cur.close() 
 
 
 def add_deck(deck, con):
     sql = """
-        insert into decks
+        insert into deck
         values(%s,%s,%s,%s,%s,%s,%s)
         on conflict (id) do update
         set (power_level, chains, wins, losses)
         = (excluded.power_level, excluded.chains, excluded.wins, excluded.losses);
     """
     
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()
     cur.execute(sql, (deck))
     cur.close() 
 
 
 def add_deck_houses(deck_id, house_list, con):
-    sql = """
-        insert into deck_houses
-        values(%s,%s,%s,%s)
-        on conflict do nothing;       
-    """
-    add_list = [deck_id] + house_list
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()
-    cur.execute(sql, (add_list))
+    for house in house_list:
+        sql = """
+            insert into deck_house
+            values(%s,%s);       
+        """
+        cur.execute(sql, (deck_id, house))
+
     cur.close() 
     
 
 def add_deck_cards(deck_id, deck_card_list, con):
-    sql = """
-        insert into deck_cards
-        values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,
-        %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        on conflict do nothing;       
-    """
-    
-    add_list = [deck_id] + deck_card_list
-    con.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cur = con.cursor()
-    cur.execute(sql, (add_list))
+    for card in deck_card_list:
+        sql = """
+            insert into deck_card
+            values(%s, %s);       
+        """
+       
+        add_list = [deck_id] + [card]
+        cur.execute(sql, (add_list))
+    
     cur.close()
+
+
+def get_runtime():
+    runtime = int(time.time() - program_start_time)
+
+    if runtime/60/60 > 1:
+        runtime = f'Previous run: {runtime//3600} hours and {int(runtime%3600/60)} minutes'
+    elif runtime / 60 > 1:
+        runtime = f'Previous run: {runtime//60} minutes and {int(runtime%60)} seconds'
+    else:
+        runtime = f'Previous run: {runtime} seconds'
+    
+    return runtime
 
 
 get_unique_cards(page, site)
 
 
-runtime = int(time.time() - program_start_time)
-
-if runtime/60/60 > 1:
-    print(f'Run Time: {runtime//3600} hours and {int(runtime%3600/60)} minutes')
-elif runtime / 60 > 1:
-    print(f'Run Time: {runtime//60} minutes and {int(runtime%60)} seconds')
-else:
-    print(f'Run Time: {runtime} seconds')

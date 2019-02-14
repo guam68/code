@@ -1,0 +1,21 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Index</title>
+  </head>
+  <body>
+    <form action="{% url 'user:user_login' %}" method="POST">
+      {% csrf_token %}
+      <input type="text" required name="username" placeholder="Username" />
+      <input type="password" required name="password" placeholder="Password" />
+      <button>Submit</button>
+    </form>
+
+    <form action="{% url 'user:signup_render' %}" method="POST">
+        {% csrf_token %}
+      <button type="submit">Sign Up</button>
+    </form>
+  </body>
+</html>

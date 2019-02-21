@@ -53,7 +53,7 @@ def get_unique_cards(page, site):
 
     cur.close()
     
-    for i in range(0, pages-page + 1):        
+    for i in range(0, pages-page + 1): 
         url = site[0] + str(page) + site[1]
         start_time = time.time()
         card_list = []
@@ -164,26 +164,41 @@ def add_deck(deck, con):
 
 def add_deck_houses(deck_id, house_list, con):
     cur = con.cursor()
+    # cur.execute('select count(*) from deck_house where deck_id=%s', (deck_id,))
+    # count = int(cur.fetchall()[0][0])
+
     for house in house_list:
+        # if count < 3:
         sql = """
             insert into deck_house
             values(%s,%s);       
         """
         cur.execute(sql, (deck_id, house))
+        # count+=1
+        # else:
+        #     cur.close()
+        #     break
 
     cur.close() 
     
 
 def add_deck_cards(deck_id, deck_card_list, con):
     cur = con.cursor()
+    # cur.execute('select count(*) from deck_card where deck_id=%s', (deck_id,))
+    # count = int(cur.fetchall()[0][0])
+    
     for card in deck_card_list:
+        # if count < 36:
         sql = """
             insert into deck_card
             values(%s, %s);       
         """
-       
         add_list = [deck_id] + [card]
         cur.execute(sql, (add_list))
+        # count +=1
+        # else:
+        #     cur.close()
+        #     break
     
     cur.close()
 
@@ -201,6 +216,19 @@ def get_runtime():
     return runtime
 
 
+def get_specific_deck(deck_id):
+    url = f'https://www.keyforgegame.com/api/decks/{deck_id}/?links=cards'
+    data = requests.get(url).json()   
+
+    deck = data['data']
+    deck_cards = data['data']['_links']['cards']
+    cards = data['_linked']['cards']
+    
+    return (deck, deck_cards, cards)
+
+
+    
 get_unique_cards(page, site)
+  
 
 

@@ -44,7 +44,7 @@ def get_unique_cards(page, site):
 
     pages = get_num_pages()
     try:
-        page = int(cur.fetchall()[0][0])
+        page = int(cur.fetchall()[0][0]) + 1
     except IndexError:
         page = 1
     finally:
